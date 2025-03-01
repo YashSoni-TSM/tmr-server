@@ -1,13 +1,14 @@
 from fastapi import FastAPI
-from src.routes import upload_excel_route
+from src.routes import upload_excel_route,save_metadata_route
 from src.models import meta_table_model
 from src.database.connect_db import engine
 app = FastAPI()
 
 meta_table_model.Base.metadata.create_all(bind=engine)
 
-app.include_router(upload_excel_route.router, prefix="/api/v1", tags=["upload_excel"])
 
+app.include_router(upload_excel_route.router, prefix="/api/v1", tags=["upload_excel"])
+app.include_router(save_metadata_route.router, prefix="/api/v1", tags=["save_metadata"])
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
