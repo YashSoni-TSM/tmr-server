@@ -2,9 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, func, JSON
 from src.database.connect_db import Base
 
 class MetaTable(Base):
-    """ 
-    Model representing metadata for dynamically created tables.
-    """
     __tablename__ = "meta_table"
 
     id = Column(String, primary_key=True, index=True)
