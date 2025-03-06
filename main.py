@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 
-from src.routes import upload_excel_route, save_metadata_route, auth_route
+from src.routes import upload_excel_route, auth_route,meta_table_route
 from src.models import meta_table_model
 from src.database.connect_db import engine
 from src.middleware.auth_middleware import get_user_authenticated
@@ -9,7 +9,7 @@ from src.middleware.auth_middleware import get_user_authenticated
 # 🔹 FastAPI App Initialization
 # ----------------------------------------
 
-app = FastAPI(title="My FastAPI App", version="1.0")
+app = FastAPI()
 
 # ----------------------------------------
 # 🔹 Database Setup
@@ -29,7 +29,7 @@ app.include_router(
 )
 
 app.include_router(
-    save_metadata_route.router, 
+    meta_table_route.router, 
     prefix="/api/v1", 
     tags=["Save Metadata"]
 )

@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from src.models.meta_table_model import MetaTable
 from src.utils.utils import split_date
+import json
 
 # ─────────────────────────────────────────────────────────────────
 # TABLE CREATION
@@ -94,7 +95,9 @@ def extract_unique_values(db: Session, table_name: str, column: str):
     """
     query = text(f"SELECT DISTINCT {column} FROM {table_name} WHERE {column} IS NOT NULL")
     
-    return [row[0] for row in db.execute(query).fetchall()]
+    values = [str(row[0]).strip() for row in db.execute(query).fetchall()]
+    
+    return json.dumps(values, ensure_ascii=False)
 
 def extract_columns_like(db: Session, table_name: str, keyword: str):
     """
