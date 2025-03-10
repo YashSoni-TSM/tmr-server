@@ -1,37 +1,32 @@
-from fastapi import UploadFile, File, Depends, APIRouter
+from fastapi import UploadFile, File, Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from src.database.connect_db import get_db
-from src.services.excel_processor import process_excel_file
-from src.services.db_operations import create_table, bulk_insert_using_copy
+from src.services.excel_processor import process_and_store_excel,process_zip_file
+import magic
+
 
 router = APIRouter()
 
-@router.post("/upload-excel/")
-async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/upload-file/")
+async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """
-    Handles the uploading and processing of an Excel file.
-    
-    Steps:
-    1. Process the uploaded Excel file into a DataFrame.
-    2. Dynamically create a corresponding database table.
-    3. Perform a bulk insert of the data for efficient storage.
-
-    Args:
-        file (UploadFile): The uploaded Excel file.
-        db (Session): SQLAlchemy database session.
-
-    Returns:
-        dict: Success message with table name or an error message.
+    Handles both direct Excel file uploads and ZIP file uploads containing Excel files.
     """
-    df, table_name, table_id = process_excel_file(file)
+    file_ext = file.filename.lower().split(".")[-1]
 
-    if df is None:
-        return {"error": "The uploaded file contains no valid data"}
+    # Read file contents for validation
+    contents = await file.read()
 
-    # Create table dynamically based on DataFrame columns
-    create_table(df, table_name, db, table_id)
+    # Validate MIME type
+    mime = magic.Magic(mime=True)
+    file_type = mime.from_buffer(contents)
 
-    # Insert data into the created table
-    await bulk_insert_using_copy(df, table_name, db, table_id)
+    if file_ext in ["xls", "xlsx"]:
+        # Process a single Excel file
+        return await process_and_store_excel(file, contents, db)
 
-    return {"message": "Data uploaded successfully", "table_name": table_name}
+    elif file_ext == "zip" and file_type == "application/zip":
+        return await process_zip_file(contents, db)
+
+    else:
+        raise HTTPException(status_code=400, detail="Only ZIP or Excel files are allowed")

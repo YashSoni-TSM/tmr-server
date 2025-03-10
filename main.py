@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 from src.routes import upload_excel_route, auth_route,meta_table_route
 from src.models import meta_table_model
@@ -25,7 +25,7 @@ app.include_router(
     upload_excel_route.router, 
     prefix="/api/v1", 
     tags=["Upload Excel"], 
-    dependencies=[Depends(get_user_authenticated)]
+    # dependencies=[Depends(get_user_authenticated)]
 )
 
 app.include_router(
@@ -50,6 +50,7 @@ def read_root():
     Root endpoint for API health check.
     """
     return {"message": "Hello, World!"}
+
 
 # ----------------------------------------
 # 🔹 Application Entry Point
