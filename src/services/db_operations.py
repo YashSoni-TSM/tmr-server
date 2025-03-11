@@ -127,19 +127,20 @@ def extract_columns_like(db: Session, table_name: str, keyword: str):
 
 def create_nested_segment(columns: list, table_name: str, db: Session):
     """
-    Creates a hierarchical JSON structure based on column dependencies.
-
+    Creates a hierarchical JSON structure based on column dependencies,
+    ensuring no redundant parent-child repetition.
+    
     Args:
         columns (list): List of hierarchical column names.
         table_name (str): Database table name.
         db (Session): SQLAlchemy database session.
-
+    
     Returns:
-        Nested dictionary representing the segment structure.
+        dict: Nested dictionary representing the segment structure.
     """
 
     def fetch_values(filters: dict, level: int):
-        """Recursively fetch unique values for each column."""
+        """Recursively fetch unique values for each column while avoiding redundancy."""
         if level >= len(columns):  
             return None
 
@@ -152,7 +153,17 @@ def create_nested_segment(columns: list, table_name: str, db: Session):
 
         values = [row[0] for row in db.execute(text(query), filters).fetchall() if row[0] is not None]
 
-        return {value: fetch_values({**filters, column: value}, level + 1) or {} for value in values}
+        nested_data = {}
+        for value in values:
+            child_data = fetch_values({**filters, column: value}, level + 1)
+
+            # If child_data exists and only has one key that matches the parent, flatten it
+            if child_data and len(child_data) == 1 and value in child_data:
+                nested_data[value] = child_data[value]  # Merge child into parent to avoid redundancy
+            else:
+                nested_data[value] = child_data or {}  # Keep structure clean
+
+        return nested_data
 
     return fetch_values({}, 0)
 

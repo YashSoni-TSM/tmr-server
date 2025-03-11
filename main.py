@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.routes import upload_excel_route, auth_route,meta_table_route
+from src.routes import upload_excel_route, auth_route,meta_table_route,extract_graph_data_route
 from src.models import meta_table_model
 from src.database.connect_db import engine
 from src.middleware.auth_middleware import get_user_authenticated
@@ -38,6 +38,12 @@ app.include_router(
     auth_route.router, 
     prefix="/api/v1/auth", 
     tags=["Authentication"]
+)
+
+app.include_router(
+    extract_graph_data_route.router,
+    prefix="/api/v1",
+    tags=["Extract Graph Data"]
 )
 
 # ----------------------------------------
