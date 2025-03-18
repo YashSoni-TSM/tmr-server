@@ -1,15 +1,24 @@
-from fastapi import FastAPI
-
+from fastapi import FastAPI, Depends
 from src.routes import upload_excel_route, auth_route,meta_table_route,extract_graph_data_route
 from src.models import meta_table_model
 from src.database.connect_db import engine
 from src.middleware.auth_middleware import get_user_authenticated
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # ----------------------------------------
 # 🔹 FastAPI App Initialization
 # ----------------------------------------
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"], 
+)
 
 # ----------------------------------------
 # 🔹 Database Setup
@@ -25,7 +34,7 @@ app.include_router(
     upload_excel_route.router, 
     prefix="/api/v1", 
     tags=["Upload Excel"], 
-    # dependencies=[Depends(get_user_authenticated)]
+    dependencies=[Depends(get_user_authenticated)]
 )
 
 app.include_router(
@@ -64,4 +73,4 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
